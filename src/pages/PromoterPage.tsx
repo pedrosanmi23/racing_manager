@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { inviteMember, listMembers } from '../lib/cloud';
 import { Card, Crumbs, Empty, Tabs, TeamDot, confirmDelete } from '../components/ui';
 import { go } from '../lib/router';
 import { byId, careerStats, categoryName, fmtDate, seasonsOfPromoter, STATUS_LABEL, titles } from '../lib/selectors';
 import { isRoundScored } from '../lib/scoring';
-import { uid, update, useDB } from '../lib/store';
+import { MODE, uid, update, useDB } from '../lib/store';
 import type { DB, Promoter } from '../lib/model';
 
 const TABS: [string, string][] = [
@@ -277,6 +278,8 @@ function Teams({ db, p }: { db: DB; p: Promoter }) {
 function Settings({ p }: { p: Promoter }) {
   const set = (patch: Partial<Promoter>) => update((d) => { Object.assign(byId(d.promoters, p.id)!, patch); });
   return (
+    <div className="two">
+    {MODE === 'cloud' && <Members promoterId={p.id} />}
     <Card title="Ajustes de la promotora">
       <div className="form-col">
         <label>Nombre<input value={p.name} onChange={(e) => set({ name: e.target.value })} /></label>
@@ -296,6 +299,36 @@ function Settings({ p }: { p: Promoter }) {
           go('');
         }}>Borrar promotora</button>
       </div>
+    </Card>
+    </div>
+  );
+}
+
+function Members({ promoterId }: { promoterId: string }) {
+  const [list, setList] = useState<Awaited<ReturnType<typeof listMembers>>>([]);
+  const [email, setEmail] = useState('');
+  const [msg, setMsg] = useState('');
+  const load = () => listMembers(promoterId).then(setList).catch((e) => setMsg(e.message));
+  useEffect(() => { load(); }, [promoterId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const invite = async () => {
+    if (!email.trim()) return;
+    try {
+      const r = await inviteMember(promoterId, email.trim());
+      setMsg(r === 'ok' ? 'Añadido ✓' : 'No hay ninguna cuenta con ese email. Pídele que se registre primero en Paddock.');
+      if (r === 'ok') { setEmail(''); load(); }
+    } catch (e) { setMsg((e as Error).message); }
+  };
+  return (
+    <Card title="Organizadores con acceso">
+      <table><tbody>
+        {list.map((m) => <tr key={m.user_id}><td>{m.email}</td><td className="right"><span className="badge">{m.role === 'owner' ? 'Propietario' : 'Editor'}</span></td></tr>)}
+      </tbody></table>
+      <div className="form-row">
+        <input type="email" placeholder="Email del organizador" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && invite()} />
+        <button onClick={invite}>Invitar</button>
+      </div>
+      {msg && <p className="muted small">{msg}</p>}
+      <p className="muted small">Solo el propietario puede invitar. La otra persona tiene que haber creado antes su cuenta.</p>
     </Card>
   );
 }
