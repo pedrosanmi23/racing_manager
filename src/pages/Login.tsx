@@ -14,7 +14,7 @@ export default function Login() {
     const auth = supabase!.auth;
     const { data, error } = mode === 'in'
       ? await auth.signInWithPassword({ email, password })
-      : await auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+      : await auth.signUp({ email, password, options: location.protocol.startsWith('http') ? { emailRedirectTo: location.origin + location.pathname } : undefined });
     setBusy(false);
     if (error) setMsg(traducir(error.message));
     else if (mode === 'up' && !data.session) setMsg('Te hemos enviado un correo para confirmar la cuenta. Ábrelo y vuelve a entrar.');
