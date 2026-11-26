@@ -1,0 +1,51 @@
+import { chromium } from '/home/user/campeonatos/app/node_modules/playwright-core/index.mjs';
+const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+const p = await b.newPage({ viewport: { width: 1360, height: 900 } });
+const errs = [];
+p.on('pageerror', (e) => errs.push(e.message));
+p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+p.on('dialog', (d) => d.accept());
+await p.goto('file:///home/user/campeonatos/app/dist/index.html');
+await p.click('text=Cargar demo');
+await p.screenshot({ path: '/home/user/shots/1-home.png' });
+await p.click('.tile');
+await p.screenshot({ path: '/home/user/shots/2-promotora.png' });
+for (const t of ['palmares', 'calendario', 'estadisticas']) {
+  await p.click(`.tabs a[href$="/${t}"]`);
+  await p.screenshot({ path: `/home/user/shots/3-${t}.png`, fullPage: true });
+}
+await p.click('.tabs a[href$="/campeonatos"]');
+await p.click('text=Campeonato de Monoplazas');
+await p.screenshot({ path: '/home/user/shots/4-campeonato.png', fullPage: true });
+await p.click('tr:has-text("2026")');
+await p.screenshot({ path: '/home/user/shots/5-temporada.png', fullPage: true });
+await p.click('.tabs a[href$="/equipos"]');
+await p.screenshot({ path: '/home/user/shots/6-equipos.png', fullPage: true });
+await p.click('.tabs a[href$="/reglamento"]');
+await p.screenshot({ path: '/home/user/shots/7-reglamento.png', fullPage: true });
+await p.click('.tabs a[href$="/rondas"]');
+await p.locator('button:has-text("Resultados")').nth(5).click();
+// entrada rápida por dorsales
+await p.fill('input[placeholder^="Entrada rápida"] >> nth=-1', '44 7 11 16 22 27 33 4');
+await p.locator('button:has-text("Aplicar")').last().click();
+await p.locator('button:has-text("Guardar carrera")').click();
+await p.screenshot({ path: '/home/user/shots/8-ronda.png', fullPage: true });
+await p.click('text=Ver clasificación');
+const rows = await p.locator('table.standings tbody tr').count();
+const cols = await p.locator('table.standings thead th.rcol').count();
+console.log('filas', rows, 'rondas puntuadas', cols);
+// crear desde cero
+await p.click('.brand');
+await p.fill('input[placeholder^="Nombre (p. ej. Dorna"]', 'Mi Promotora');
+await p.click('button:has-text("Crear")');
+await p.fill('input[placeholder^="Nombre (p. ej. Mundial"]', 'Mundial X');
+await p.fill('input[placeholder^="Categorías"]', 'A, B');
+await p.click('button:has-text("Crear")');
+await p.click('button:has-text("Crear temporada")');
+await p.fill('input[placeholder="…o crear piloto nuevo"]', 'Piloto Uno');
+await p.click('text=Crear e inscribir');
+await p.fill('input[placeholder="…o crear piloto nuevo"]', 'Piloto Dos');
+await p.click('text=Crear e inscribir');
+await p.screenshot({ path: '/home/user/shots/9-nueva.png', fullPage: true });
+console.log('errores:', errs);
+await b.close();
