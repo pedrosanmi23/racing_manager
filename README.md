@@ -18,3 +18,11 @@ Los datos se guardan en el navegador (localStorage). Usa «Exportar copia» para
 - `src/components/Evolution.tsx` – gráfico de evolución de puntos / posiciones
 
 Ideas pendientes: ver [IDEAS.md](IDEAS.md).
+
+## Base de datos (Supabase)
+Sin configuración, la app guarda en el navegador («Modo local»). Para usar la nube:
+1. En Supabase › SQL Editor, ejecuta `supabase/migrations/0001_init.sql`.
+2. Copia `.env.example` a `.env.local` y pon la URL del proyecto y la clave **anon/publishable**.
+3. `npm run dev` o `npm run build`.
+
+Cada promotora solo la ven y editan sus miembros (Row Level Security). Quien la crea es propietario y puede invitar a otros organizadores por email desde Ajustes. Si el navegador tenía datos locales, la portada ofrece subirlos a la nube.

@@ -3,12 +3,14 @@ import { Card, Empty } from '../components/ui';
 import { buildDemo } from '../lib/demo';
 import { go } from '../lib/router';
 import { seasonsOfPromoter } from '../lib/selectors';
-import { exportJSON, getDB, importJSON, setDB, uid, update, useDB } from '../lib/store';
+import { confirmDelete } from '../components/ui';
+import { clearLocalData, deletePromoter, exportJSON, getDB, hasLocalData, importJSON, loadLocal, mergeIn, MODE, setDB, uid, update, useDB } from '../lib/store';
 
 export default function Home() {
   const db = useDB();
   const [name, setName] = useState('');
   const [color, setColor] = useState('#e10600');
+  const [localPending, setLocalPending] = useState(() => MODE === 'cloud' && hasLocalData());
 
   const create = () => {
     if (!name.trim()) return;
@@ -29,7 +31,8 @@ export default function Home() {
           const seasons = seasonsOfPromoter(db, p.id);
           return (
             <a key={p.id} className="tile" href={`#/p/${p.id}`} style={{ borderTopColor: p.color }}>
-              <h2>{p.name}</h2>
+              <div className="tile-head"><h2>{p.name}</h2>
+                <button className="ghost danger" title="Borrar promotora" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirmDelete(`la promotora «${p.name}» con todos sus campeonatos, pilotos y resultados`)) deletePromoter(p.id); }}>Borrar</button></div>
               <p className="muted">{p.description}</p>
               <div className="stats"><span><b>{chs.length}</b> campeonatos</span><span><b>{seasons.length}</b> temporadas</span><span><b>{db.drivers.filter((d) => d.promoterId === p.id).length}</b> pilotos</span></div>
             </a>
@@ -37,6 +40,13 @@ export default function Home() {
         })}
         {db.promoters.length === 0 && <Empty>Todavía no hay promotoras. Crea una o carga la demo para ver cómo funciona.</Empty>}
       </div>
+      {localPending && (
+        <div className="banner">
+          Este navegador tiene datos guardados de antes de conectar la base de datos.{' '}
+          <button onClick={() => { mergeIn(loadLocal()); clearLocalData(); setLocalPending(false); }}>Subirlos a la nube</button>{' '}
+          <button className="ghost" onClick={() => setLocalPending(false)}>Ahora no</button>
+        </div>
+      )}
       <div className="two">
         <Card title="Nueva promotora">
           <div className="form-row">
@@ -56,7 +66,7 @@ export default function Home() {
               }} />
             </label>
           </div>
-          <p className="muted small">Los datos se guardan en este navegador. Exporta una copia para no perderlos.</p>
+          <p className="muted small">{MODE === 'cloud' ? 'Los datos se guardan en la base de datos. Exportar crea una copia JSON de lo que ves.' : 'Los datos se guardan en este navegador. Exporta una copia para no perderlos.'}</p>
         </Card>
       </div>
     </div>
