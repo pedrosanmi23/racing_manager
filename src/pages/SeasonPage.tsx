@@ -90,7 +90,13 @@ function DriversTable({ db, s }: { db: DB; s: Season }) {
 function TeamsTable({ db, s }: { db: DB; s: Season }) {
   const ts = teamStandings(s);
   const scored = s.rounds.filter(isRoundScored);
-  if (!ts.length) return <Empty>Asigna equipos a los pilotos en «Parrilla» para ver la clasificación de equipos.</Empty>;
+  const promoterId = byId(db.championships, s.championshipId)!.promoterId;
+  if (!ts.length) return (
+    <Card title="Equipos">
+      <Empty>Ningún piloto de esta temporada tiene equipo todavía. Crea los equipos aquí y asígnalos a cada piloto en «Parrilla».</Empty>
+      <NewTeamForm promoterId={promoterId} onCreated={() => go(`s/${s.id}/inscritos`)} />
+    </Card>
+  );
   return (
     <Card title={`Clasificación de equipos${s.scoring.teamCountBest ? ` (puntúan los ${s.scoring.teamCountBest} mejores pilotos por ronda)` : ''}`}>
       <div className="scroll">
@@ -151,6 +157,7 @@ function Entries({ db, s, promoterId }: { db: DB; s: Season; promoterId: string 
   const teams = db.teams.filter((t) => t.promoterId === promoterId);
   const free = drivers.filter((d) => !s.entries.some((e) => e.driverId === d.id));
   const [newName, setNewName] = useState('');
+  const [newTeamFor, setNewTeamFor] = useState<string | null>(null);
   return (
     <Card title={`Parrilla (${s.entries.length} pilotos)`} actions={free.length > 0 && <button className="secondary" onClick={() => mut(s.id, (x) => { free.forEach((d) => x.entries.push({ driverId: d.id, number: d.defaultNumber })); })}>Inscribir a todos</button>}>
       <table>
@@ -161,10 +168,18 @@ function Entries({ db, s, promoterId }: { db: DB; s: Season; promoterId: string 
               <td style={{ width: 90 }}><input className="inline" type="number" value={e.number ?? ''} onChange={(ev) => mut(s.id, (x) => { x.entries[i].number = ev.target.value ? +ev.target.value : undefined; })} /></td>
               <td>{byId(db.drivers, e.driverId)?.name}</td>
               <td>
-                <select value={e.teamId ?? ''} onChange={(ev) => mut(s.id, (x) => { x.entries[i].teamId = ev.target.value || undefined; })}>
+                <TeamDot color={byId(teams, e.teamId)?.color} />{' '}
+                <select value={e.teamId ?? ''} onChange={(ev) => {
+                  if (ev.target.value === '__new') { setNewTeamFor(e.driverId); return; }
+                  mut(s.id, (x) => { x.entries[i].teamId = ev.target.value || undefined; });
+                }}>
                   <option value="">— Sin equipo —</option>
                   {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  <option value="__new">+ Crear equipo nuevo…</option>
                 </select>
+                {newTeamFor === e.driverId && (
+                  <NewTeamForm promoterId={promoterId} onCreated={(teamId) => { mut(s.id, (x) => { x.entries[i].teamId = teamId; }); setNewTeamFor(null); }} />
+                )}
               </td>
               <td className="right"><button className="ghost danger" onClick={() => mut(s.id, (x) => { x.entries.splice(i, 1); })}>Quitar</button></td>
             </tr>
@@ -184,8 +199,36 @@ function Entries({ db, s, promoterId }: { db: DB; s: Season; promoterId: string 
           setNewName('');
         }}>Crear e inscribir</button>
       </div>
-      {teams.length === 0 && <p className="muted small">Crea equipos en la pestaña «Equipos» de la promotora para tener clasificación de constructores.</p>}
+      <h4 className="subhead">Equipos ({teams.length})</h4>
+      {teams.length > 0 && <p className="muted small">{teams.map((t) => t.name).join(' · ')}</p>}
+      <NewTeamForm promoterId={promoterId} />
+      <p className="muted small">Los equipos se guardan en la promotora, así que podrás reutilizarlos en otras temporadas y campeonatos.</p>
     </Card>
+  );
+}
+
+const TEAM_COLORS = ['#e10600', '#1d4ed8', '#059669', '#f59e0b', '#7c3aed', '#ec4899', '#0891b2', '#f97316', '#64748b', '#84cc16'];
+
+/** Crear un equipo de la promotora sin salir de la temporada; opcionalmente asignarlo a un piloto. */
+function NewTeamForm({ promoterId, onCreated }: { promoterId: string; onCreated?: (teamId: string) => void }) {
+  const [name, setName] = useState('');
+  const count = useDB().teams.filter((t) => t.promoterId === promoterId).length;
+  const [picked, setColor] = useState<string | null>(null);
+  // Si no eliges color, cada equipo nuevo recibe uno distinto
+  const color = picked ?? TEAM_COLORS[count % TEAM_COLORS.length];
+  const add = () => {
+    if (!name.trim()) return;
+    const id = uid();
+    update((d) => { d.teams.push({ id, promoterId, name: name.trim(), color }); });
+    setName(''); setColor(null);
+    onCreated?.(id);
+  };
+  return (
+    <div className="form-row">
+      <input placeholder="Nombre del nuevo equipo" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} />
+      <input type="color" value={color} onChange={(e) => setColor(e.target.value)} title="Color del equipo" />
+      <button onClick={add}>Crear equipo</button>
+    </div>
   );
 }
 
