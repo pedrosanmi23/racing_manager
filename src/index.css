@@ -133,3 +133,4 @@ table.results input.inline { width: 60px; border-color: var(--line); }
 .subhead { margin: 16px 0 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
 .import .banner > * + * { margin-top: 8px; }
 .warnings { margin: 6px 0 0; padding-left: 18px; color: #fca5a5; font-size: 13px; }
+.ghost.mini { padding: 2px 6px; font-size: 11px; }

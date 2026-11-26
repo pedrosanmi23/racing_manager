@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Back, Card, Crumbs, Empty, TeamDot } from '../components/ui';
 import { byId, categoryName } from '../lib/selectors';
 import { scoreDriverRound } from '../lib/scoring';
+import { randomResult } from '../lib/random';
 import { update, useDB } from '../lib/store';
 import type { DB, ResultRow, ResultStatus, Round, Season, SessionResult } from '../lib/model';
 
@@ -85,6 +86,29 @@ function SessionEditor({ title, db, s, session, onSave }: { title: string; db: D
   };
 
   /** Entrada rápida: dorsales en orden de llegada, p. ej. "44 7 11 16". */
+  const [withDnf, setWithDnf] = useState(true);
+  /** Resultado al azar: se puede retocar a mano antes de guardar. */
+  const randomize = () => {
+    const r = randomResult(s.entries.map((e) => e.driverId), { dnfRate: withDnf ? 0.08 : 0 });
+    const next: Record<string, Row> = {};
+    r.order.forEach((id, i) => (next[id] = { pos: String(i + 1), status: 'classified' }));
+    r.dnf.forEach((id) => (next[id] = { pos: '', status: 'dnf' }));
+    setRows(next);
+    setPole(r.pole ?? '');
+    if (title === 'Carrera') setFl(r.fastestLap ?? '');
+    setMsg('Resultado aleatorio generado. Ajústalo si quieres y pulsa Guardar.');
+  };
+  /** Sube o baja un puesto intercambiándose con el piloto de al lado. */
+  const move = (id: string, dir: -1 | 1) => setRows((cur) => {
+    const order = Object.entries(cur).filter(([, v]) => v.pos).sort((a, b) => +a[1].pos - +b[1].pos).map(([k]) => k);
+    const i = order.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= order.length) return cur;
+    [order[i], order[j]] = [order[j], order[i]];
+    const next = { ...cur };
+    order.forEach((k, n) => (next[k] = { ...next[k], pos: String(n + 1) }));
+    return next;
+  });
+
   const applyQuick = () => {
     const nums = quick.split(/[\s,;]+/).filter(Boolean);
     const next: Record<string, Row> = {};
@@ -104,18 +128,21 @@ function SessionEditor({ title, db, s, session, onSave }: { title: string; db: D
       <div className="form-row">
         <input placeholder="Entrada rápida: dorsales en orden de llegada (44 7 11 …)" value={quick} onChange={(e) => setQuick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyQuick()} />
         <button className="secondary" onClick={applyQuick}>Aplicar</button>
+        <button className="secondary" onClick={randomize} title="Genera un orden de llegada al azar, con pole y vuelta rápida">🎲 Aleatorio</button>
+        <label className="check small"><input type="checkbox" checked={withDnf} onChange={(e) => setWithDnf(e.target.checked)} /> con abandonos</label>
         <button className="ghost" onClick={() => setRows(Object.fromEntries(s.entries.map((e, i) => [e.driverId, { pos: String(i + 1), status: 'classified' as const }])))}>Orden de parrilla</button>
         <button className="ghost danger" onClick={() => setRows(toRows(s))}>Vaciar</button>
       </div>
       <table className="results">
-        <thead><tr><th style={{ width: 70 }}>Pos</th><th>#</th><th>Piloto</th><th>Estado</th></tr></thead>
+        <thead><tr><th style={{ width: 150 }}>Pos</th><th>#</th><th>Piloto</th><th>Estado</th></tr></thead>
         <tbody>
           {entries.map((e) => {
             const row = rows[e.driverId] ?? { pos: '', status: '' };
             const team = byId(db.teams, e.teamId);
             return (
               <tr key={e.driverId} className={row.pos ? '' : 'muted'}>
-                <td><input className="inline" type="number" min={1} value={row.pos} onChange={(ev) => set(e.driverId, { pos: ev.target.value, status: ev.target.value ? 'classified' : '' })} /></td>
+                <td className="nowrap"><input className="inline" type="number" min={1} value={row.pos} onChange={(ev) => set(e.driverId, { pos: ev.target.value, status: ev.target.value ? 'classified' : '' })} />
+                  {row.pos && <><button className="ghost mini" title="Subir un puesto" onClick={() => move(e.driverId, -1)}>▲</button><button className="ghost mini" title="Bajar un puesto" onClick={() => move(e.driverId, 1)}>▼</button></>}</td>
                 <td>{e.number}</td>
                 <td><TeamDot color={team?.color} /> {byId(db.drivers, e.driverId)?.name}</td>
                 <td>
