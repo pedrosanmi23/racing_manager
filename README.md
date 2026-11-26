@@ -15,3 +15,6 @@ Los datos se guardan en el navegador (localStorage). Usa «Exportar copia» para
 - `src/lib/scoring.ts` – motor de puntuación y plantillas (F1, MotoGP, Fórmula E, F1 clásico, club)
 - `src/lib/selectors.ts` – palmarés, estadísticas de carrera deportiva
 - `src/pages/*` – pantallas
+- `src/components/Evolution.tsx` – gráfico de evolución de puntos / posiciones
+
+Ideas pendientes: ver [IDEAS.md](IDEAS.md).

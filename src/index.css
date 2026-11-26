@@ -102,3 +102,22 @@ td.pos.none { color: var(--muted); }
 .points-preview b { font-size: 18px; }
 .points-preview small { color: var(--muted); }
 table.results input.inline { width: 60px; border-color: var(--line); }
+.evo > * + * { margin-top: 12px; }
+.evo-controls { justify-content: space-between; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; border: 0; border-radius: 0; color: var(--muted); }
+.seg button.on { background: var(--panel2); color: var(--text); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 500; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+.chip.on { color: var(--text); border-color: #3a404d; background: var(--panel2); }
+.sw { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #3a404d; display: inline-block; flex: none; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; }
+.chart .grid { stroke: #262b35; stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 11px; }
+.chart .axis.hl { fill: var(--text); font-weight: 700; }
+.chart .crosshair { stroke: #4a5160; stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .endlabel { fill: var(--text); font-size: 12px; }
+.tooltip { position: absolute; pointer-events: none; background: #0d0f13; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 200px; box-shadow: 0 6px 20px #0008; font-size: 13px; }
+.tt-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.tt-row span:nth-child(2) { flex: 1; color: var(--muted); }

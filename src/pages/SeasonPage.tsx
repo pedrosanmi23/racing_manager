@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Evolution from '../components/Evolution';
 import { Card, Crumbs, Empty, PosCell, Tabs, TeamDot } from '../components/ui';
 import { go } from '../lib/router';
 import { byId, categoryName, fmtDate, STATUS_LABEL } from '../lib/selectors';
@@ -6,7 +7,7 @@ import { driverStandings, isMathematicallyDecided, isRoundScored, maxPointsRemai
 import { uid, update, useDB } from '../lib/store';
 import type { DB, ScoringConfig, Season, SeasonStatus } from '../lib/model';
 
-const TABS: [string, string][] = [['clasificacion', 'Pilotos'], ['equipos', 'Equipos'], ['rondas', 'Calendario y resultados'], ['inscritos', 'Parrilla'], ['reglamento', 'Reglamento']];
+const TABS: [string, string][] = [['clasificacion', 'Pilotos'], ['evolucion', 'Evolución'], ['equipos', 'Equipos'], ['rondas', 'Calendario y resultados'], ['inscritos', 'Parrilla'], ['reglamento', 'Reglamento']];
 
 const mut = (id: string, fn: (s: Season) => void) => update((d) => fn(byId(d.seasons, id)!));
 
@@ -27,6 +28,7 @@ export default function SeasonPage({ id, tab }: { id: string; tab: string }) {
       </div>
       <Tabs tabs={TABS} active={tab} base={`s/${id}`} />
       {tab === 'clasificacion' && <DriversTable db={db} s={s} />}
+      {tab === 'evolucion' && <Card><Evolution db={db} s={s} /></Card>}
       {tab === 'equipos' && <TeamsTable db={db} s={s} />}
       {tab === 'rondas' && <Rounds db={db} s={s} />}
       {tab === 'inscritos' && <Entries db={db} s={s} promoterId={p.id} />}
