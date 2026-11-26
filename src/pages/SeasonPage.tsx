@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Evolution from '../components/Evolution';
+import ImportCSV from '../components/ImportCSV';
 import { Card, Crumbs, Empty, PosCell, Tabs, TeamDot } from '../components/ui';
 import { go } from '../lib/router';
 import { byId, categoryName, fmtDate, STATUS_LABEL } from '../lib/selectors';
@@ -199,6 +200,8 @@ function Entries({ db, s, promoterId }: { db: DB; s: Season; promoterId: string 
           setNewName('');
         }}>Crear e inscribir</button>
       </div>
+      <ImportCSV kind="drivers" promoterId={promoterId} seasonId={s.id} />
+      <p className="muted small">El CSV puede llevar las columnas Nombre, Nacionalidad, Dorsal y Equipo. Los pilotos y equipos que no existan se crean y todos quedan inscritos en esta temporada.</p>
       <h4 className="subhead">Equipos ({teams.length})</h4>
       {teams.length > 0 && <p className="muted small">{teams.map((t) => t.name).join(' · ')}</p>}
       <NewTeamForm promoterId={promoterId} />

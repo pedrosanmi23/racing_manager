@@ -131,3 +131,5 @@ table.results input.inline { width: 60px; border-color: var(--line); }
 .crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .crumbs .back { background: var(--panel2); border-color: var(--line); padding: 4px 10px; margin-right: 10px; font-size: 13px; }
 .subhead { margin: 16px 0 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.import .banner > * + * { margin-top: 8px; }
+.warnings { margin: 6px 0 0; padding-left: 18px; color: #fca5a5; font-size: 13px; }

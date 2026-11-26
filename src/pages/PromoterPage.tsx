@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inviteMember, listMembers } from '../lib/cloud';
+import ImportCSV from '../components/ImportCSV';
 import { Card, Crumbs, Empty, Tabs, TeamDot, confirmDelete } from '../components/ui';
 import { go } from '../lib/router';
 import { byId, careerStats, categoryName, fmtDate, seasonsOfPromoter, STATUS_LABEL, titles } from '../lib/selectors';
@@ -225,6 +226,7 @@ function Drivers({ db, p }: { db: DB; p: Promoter }) {
         <input placeholder="Dorsal" type="number" value={f.num} onChange={(e) => setF({ ...f, num: e.target.value })} style={{ maxWidth: 100 }} />
         <button onClick={add}>Añadir</button>
       </div>
+      <ImportCSV kind="drivers" promoterId={p.id} />
       <table>
         <thead><tr><th>#</th><th>Nombre</th><th>Nac.</th><th></th></tr></thead>
         <tbody>
@@ -261,6 +263,7 @@ function Teams({ db, p }: { db: DB; p: Promoter }) {
         <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
         <button onClick={add}>Añadir</button>
       </div>
+      <ImportCSV kind="teams" promoterId={p.id} />
       <table>
         <tbody>
           {list.map((t) => (
