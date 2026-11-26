@@ -3,7 +3,8 @@ import { Card, Empty } from '../components/ui';
 import { buildDemo } from '../lib/demo';
 import { go } from '../lib/router';
 import { seasonsOfPromoter } from '../lib/selectors';
-import { clearLocalData, exportJSON, getDB, hasLocalData, importJSON, loadLocal, mergeIn, MODE, setDB, uid, update, useDB } from '../lib/store';
+import { confirmDelete } from '../components/ui';
+import { clearLocalData, deletePromoter, exportJSON, getDB, hasLocalData, importJSON, loadLocal, mergeIn, MODE, setDB, uid, update, useDB } from '../lib/store';
 
 export default function Home() {
   const db = useDB();
@@ -30,7 +31,8 @@ export default function Home() {
           const seasons = seasonsOfPromoter(db, p.id);
           return (
             <a key={p.id} className="tile" href={`#/p/${p.id}`} style={{ borderTopColor: p.color }}>
-              <h2>{p.name}</h2>
+              <div className="tile-head"><h2>{p.name}</h2>
+                <button className="ghost danger" title="Borrar promotora" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirmDelete(`la promotora «${p.name}» con todos sus campeonatos, pilotos y resultados`)) deletePromoter(p.id); }}>Borrar</button></div>
               <p className="muted">{p.description}</p>
               <div className="stats"><span><b>{chs.length}</b> campeonatos</span><span><b>{seasons.length}</b> temporadas</span><span><b>{db.drivers.filter((d) => d.promoterId === p.id).length}</b> pilotos</span></div>
             </a>

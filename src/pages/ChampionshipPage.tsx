@@ -3,7 +3,7 @@ import { Card, Crumbs, Empty, confirmDelete } from '../components/ui';
 import { go } from '../lib/router';
 import { byId, STATUS_LABEL } from '../lib/selectors';
 import { driverStandings, isRoundScored, PRESETS, presetConfig } from '../lib/scoring';
-import { uid, update, useDB } from '../lib/store';
+import { deleteChampionship, uid, update, useDB } from '../lib/store';
 import type { Round, Season } from '../lib/model';
 
 export default function ChampionshipPage({ id }: { id: string }) {
@@ -35,7 +35,10 @@ export default function ChampionshipPage({ id }: { id: string }) {
   return (
     <div className="page">
       <Crumbs items={[[p.name, `p/${p.id}`], [ch.name]]} />
-      <h1 className="title" style={{ borderLeftColor: p.color }}>{ch.name} <span className="badge">{ch.discipline}</span></h1>
+      <div className="title-row">
+        <h1 className="title" style={{ borderLeftColor: p.color }}>{ch.name} <span className="badge">{ch.discipline}</span></h1>
+        <button className="danger" onClick={() => { if (confirmDelete(`el campeonato «${ch.name}» con todas sus temporadas`)) { deleteChampionship(ch.id); go(`p/${p.id}`); } }}>Borrar campeonato</button>
+      </div>
 
       <div className="two wide-left">
         <div>

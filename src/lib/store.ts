@@ -125,3 +125,25 @@ export function mergeIn(other: DB, replace = false) {
 
 export const hasLocalData = () => loadLocal().promoters.length > 0;
 export const clearLocalData = () => localStorage.removeItem(LOCAL_KEY);
+
+/** Borra un campeonato con sus temporadas y títulos históricos. */
+export function deleteChampionship(id: string) {
+  update((d) => {
+    d.seasons = d.seasons.filter((s) => s.championshipId !== id);
+    d.manualTitles = d.manualTitles.filter((t) => t.championshipId !== id);
+    d.championships = d.championships.filter((c) => c.id !== id);
+  });
+}
+
+/** Borra una promotora y todo lo que contiene. */
+export function deletePromoter(id: string) {
+  update((d) => {
+    const chIds = new Set(d.championships.filter((c) => c.promoterId === id).map((c) => c.id));
+    d.seasons = d.seasons.filter((s) => !chIds.has(s.championshipId));
+    d.championships = d.championships.filter((c) => c.promoterId !== id);
+    d.drivers = d.drivers.filter((x) => x.promoterId !== id);
+    d.teams = d.teams.filter((x) => x.promoterId !== id);
+    d.manualTitles = d.manualTitles.filter((x) => x.promoterId !== id);
+    d.promoters = d.promoters.filter((x) => x.id !== id);
+  });
+}

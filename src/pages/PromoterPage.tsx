@@ -4,7 +4,7 @@ import { Card, Crumbs, Empty, Tabs, TeamDot, confirmDelete } from '../components
 import { go } from '../lib/router';
 import { byId, careerStats, categoryName, fmtDate, seasonsOfPromoter, STATUS_LABEL, titles } from '../lib/selectors';
 import { isRoundScored } from '../lib/scoring';
-import { MODE, uid, update, useDB } from '../lib/store';
+import { deleteChampionship, deletePromoter, MODE, uid, update, useDB } from '../lib/store';
 import type { DB, Promoter } from '../lib/model';
 
 const TABS: [string, string][] = [
@@ -19,7 +19,10 @@ export default function PromoterPage({ id, tab }: { id: string; tab: string }) {
   return (
     <div className="page">
       <Crumbs items={[[p.name]]} />
-      <h1 className="title" style={{ borderLeftColor: p.color }}>{p.name}</h1>
+      <div className="title-row">
+        <h1 className="title" style={{ borderLeftColor: p.color }}>{p.name}</h1>
+        <button className="danger" onClick={() => { if (confirmDelete(`la promotora «${p.name}» con todos sus campeonatos, pilotos y resultados`)) { deletePromoter(p.id); go(''); } }}>Borrar promotora</button>
+      </div>
       <Tabs tabs={TABS} active={tab} base={`p/${id}`} />
       {tab === 'campeonatos' && <Championships db={db} p={p} />}
       {tab === 'calendario' && <Calendar db={db} p={p} />}
@@ -51,7 +54,8 @@ function Championships({ db, p }: { db: DB; p: Promoter }) {
           const ss = db.seasons.filter((s) => s.championshipId === c.id).sort((a, b) => b.year - a.year);
           return (
             <a key={c.id} className="tile" href={`#/c/${c.id}`} style={{ borderTopColor: p.color }}>
-              <span className="badge">{c.discipline}</span>
+              <div className="tile-head"><span className="badge">{c.discipline}</span>
+                <button className="ghost danger" title="Borrar campeonato" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirmDelete(`el campeonato «${c.name}» con todas sus temporadas`)) deleteChampionship(c.id); }}>Borrar</button></div>
               <h2>{c.name}</h2>
               <p className="muted">{c.categories.map((k) => k.name).join(' · ')}</p>
               <div className="stats"><span><b>{ss.length}</b> temporadas</span>{ss[0] && <span>Última: {ss[0].year} ({STATUS_LABEL[ss[0].status]})</span>}</div>
@@ -285,19 +289,7 @@ function Settings({ p }: { p: Promoter }) {
         <label>Nombre<input value={p.name} onChange={(e) => set({ name: e.target.value })} /></label>
         <label>Descripción<textarea value={p.description ?? ''} onChange={(e) => set({ description: e.target.value })} /></label>
         <label>Color<input type="color" value={p.color} onChange={(e) => set({ color: e.target.value })} /></label>
-        <button className="danger" onClick={() => {
-          if (!confirmDelete(`la promotora «${p.name}» y todos sus datos`)) return;
-          update((d) => {
-            const chIds = new Set(d.championships.filter((c) => c.promoterId === p.id).map((c) => c.id));
-            d.seasons = d.seasons.filter((s) => !chIds.has(s.championshipId));
-            d.championships = d.championships.filter((c) => c.promoterId !== p.id);
-            d.drivers = d.drivers.filter((x) => x.promoterId !== p.id);
-            d.teams = d.teams.filter((x) => x.promoterId !== p.id);
-            d.manualTitles = d.manualTitles.filter((x) => x.promoterId !== p.id);
-            d.promoters = d.promoters.filter((x) => x.id !== p.id);
-          });
-          go('');
-        }}>Borrar promotora</button>
+        <button className="danger" onClick={() => { if (confirmDelete(`la promotora «${p.name}» con todos sus campeonatos, pilotos y resultados`)) { deletePromoter(p.id); go(''); } }}>Borrar promotora</button>
       </div>
     </Card>
     </div>

@@ -127,3 +127,6 @@ table.results input.inline { width: 60px; border-color: var(--line); }
 .sync.saved, .sync.idle { color: var(--green); }
 .login { max-width: 420px; margin: 40px auto; }
 .login .card > * + * { margin-top: 12px; }
+.tile-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.crumbs .back { background: var(--panel2); border-color: var(--line); padding: 4px 10px; margin-right: 10px; font-size: 13px; }

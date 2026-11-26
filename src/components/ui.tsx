@@ -12,8 +12,11 @@ export function Tabs({ tabs, active, base }: { tabs: [string, string][]; active:
 }
 
 export function Crumbs({ items }: { items: [string, string?][] }) {
+  // «Volver» lleva al nivel anterior (el último enlace de la ruta, o la portada)
+  const parent = [...items].reverse().find(([, href]) => href)?.[1] ?? '';
   return (
     <div className="crumbs">
+      <button className="back" onClick={() => go(parent)}>← Volver</button>
       <a href="#/">Promotoras</a>
       {items.map(([label, href], i) => (
         <span key={i}> / {href ? <a href={`#/${href}`}>{label}</a> : <b>{label}</b>}</span>
